@@ -60,7 +60,11 @@ export async function GET(request) {
 
 export async function POST(request) {
 	const { userId: clerkUserId } = getAuth(request);
+<<<<<<< HEAD
 	const { name, data, meta } = await request.json();
+=======
+	const { name, data } = await request.json();
+>>>>>>> origin/master
 
 	if (!clerkUserId) {
 		return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -83,7 +87,10 @@ export async function POST(request) {
 			data: {
 				name,
 				data,
+<<<<<<< HEAD
 				meta,
+=======
+>>>>>>> origin/master
 				userId: user.id,
 			},
 		});
@@ -121,8 +128,12 @@ export async function PUT(request) {
 	const updateData = {};
 	if (body.name !== undefined) updateData.name = body.name;
 	if (body.data !== undefined) updateData.data = body.data;
+<<<<<<< HEAD
 	if (body.meta !== undefined) updateData.meta = body.meta;
 	console.log("Update data: ", updateData);
+=======
+
+>>>>>>> origin/master
 	if (Object.keys(updateData).length === 0) {
 		return NextResponse.json({ error: "No fields to update" }, { status: 400 });
 	}

@@ -28,7 +28,10 @@ model Spreadsheet {
   id        String   @id @default(cuid())
   name      String
   data      Json
+<<<<<<< HEAD
   meta      Json
+=======
+>>>>>>> origin/master
   user      User     @relation(fields: [userId], references: [id])
   userId    String
   createdAt DateTime @default(now())

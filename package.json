@@ -24,7 +24,10 @@
 		"react-color": "^2.19.3",
 		"react-dom": "^18.3.1",
 		"react-hot-toast": "^2.5.2",
+<<<<<<< HEAD
 		"react-speech-recognition": "^4.0.1",
+=======
+>>>>>>> origin/master
 		"toast": "^0.5.4"
 	},
 	"devDependencies": {
