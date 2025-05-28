@@ -6,11 +6,9 @@ import { useSyncState } from "@/hooks/useSyncState";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import AIAssistant from "./AIAssistant";
-<<<<<<< HEAD
 import VoiceCommandBar from "./VoiceCommandBar";
 import { SketchPicker } from "react-color";
-=======
->>>>>>> origin/master
+import Navbar from "./Navbar";
 import {
 	Bold,
 	Italic,
@@ -40,6 +38,7 @@ export default function SpreadsheetPage({ title, setTitle }) {
 	const [showTextColorPicker, setShowTextColorPicker] = useState(false);
 	const [currentColor, setCurrentColor] = useState("#ffffff");
 	const [currentTextColor, setCurrentTextColor] = useState("#000000");
+	const [refetchKey, setRefetchKey] = useState(0);
 	const hotRef = useRef(null);
 	const sync = useSyncState();
 
@@ -51,6 +50,8 @@ export default function SpreadsheetPage({ title, setTitle }) {
 		}
 		return null;
 	}
+
+	const handleTitleSaved = () => setRefetchKey((k) => k + 1);
 
 	useEffect(() => {
 		const id = searchParams.get("id");
@@ -74,7 +75,6 @@ export default function SpreadsheetPage({ title, setTitle }) {
 		}
 	};
 
-<<<<<<< HEAD
 	function getAllCellMeta(instance) {
 		const meta = {};
 		const rows = instance.countRows();
@@ -117,8 +117,6 @@ export default function SpreadsheetPage({ title, setTitle }) {
 		return meta;
 	}
 
-=======
->>>>>>> origin/master
 	const applyFormatting = (property, value) => {
 		if (!selectedCell || !hotRef.current) return;
 
@@ -183,9 +181,8 @@ export default function SpreadsheetPage({ title, setTitle }) {
 		};
 
 		fetchSpreadsheet();
-	}, [spreadsheetId, user]);
+	}, [spreadsheetId, user, refetchKey]);
 
-<<<<<<< HEAD
 	useEffect(() => {
 		if (spreadsheet?.name) {
 			setTitle(spreadsheet.name);
@@ -212,8 +209,6 @@ export default function SpreadsheetPage({ title, setTitle }) {
 		}
 	}, [spreadsheet, hotRef]);
 
-=======
->>>>>>> origin/master
 	// Save spreadsheet on Ctrl+S
 	useEffect(() => {
 		const handleKeyDown = (e) => {
@@ -236,11 +231,8 @@ export default function SpreadsheetPage({ title, setTitle }) {
 		console.log("Title of the spreadsheet: ", title);
 		try {
 			const token = await getToken();
-<<<<<<< HEAD
 			const instance = hotRef.current.getInstance();
 			const meta = getAllCellMeta(instance);
-=======
->>>>>>> origin/master
 			const endpoint = spreadsheetId
 				? `/api/spreadsheets?id=${spreadsheetId}`
 				: `/api/spreadsheets`;
@@ -255,10 +247,7 @@ export default function SpreadsheetPage({ title, setTitle }) {
 				body: JSON.stringify({
 					name: title || "Untitled Spreadsheet",
 					data,
-<<<<<<< HEAD
 					meta,
-=======
->>>>>>> origin/master
 					lastModified: new Date().toISOString(),
 				}),
 			});
@@ -275,7 +264,7 @@ export default function SpreadsheetPage({ title, setTitle }) {
 			if (!spreadsheetId && result.id) {
 				setSpreadsheetId(result.id);
 			}
-			setSpreadsheet((prev) => ({ ...prev, data }));
+			setSpreadsheet((prev) => ({ ...prev, data, name: title }));
 			sync.completeSync();
 			if (!isAutoSave) {
 				toast.success("Saved successfully!", { id: toastId });
@@ -294,7 +283,6 @@ export default function SpreadsheetPage({ title, setTitle }) {
 		}
 	};
 
-<<<<<<< HEAD
 	function parseCellReference(ref) {
 		// Matches e.g. "A3", "B12", "AA10"
 		const match = ref.match(/^([A-Za-z]+)(\d+)$/);
@@ -372,8 +360,6 @@ export default function SpreadsheetPage({ title, setTitle }) {
 		if (lower.includes("underline")) toggleFormatting("underline");
 	}
 
-=======
->>>>>>> origin/master
 	// Loading state
 	if (userLoading || loading) {
 		return (
@@ -522,7 +508,6 @@ export default function SpreadsheetPage({ title, setTitle }) {
 						<AlignRight size={18} />
 					</button>
 				</div>
-<<<<<<< HEAD
 				<div className="flex-row flex flex-shrink-0 justify-between w-full mt-2 min-w-0">
 					<div className="flex-1 min-w-0">
 						<AIAssistant sheetData={spreadsheet?.data || []} />
@@ -534,10 +519,6 @@ export default function SpreadsheetPage({ title, setTitle }) {
 							loading={userLoading}
 						/>
 					</div>
-=======
-				<div>
-					<AIAssistant sheetData={spreadsheet?.data || []} />
->>>>>>> origin/master
 				</div>
 			</div>
 			{/* Spreadsheet */}
@@ -548,7 +529,6 @@ export default function SpreadsheetPage({ title, setTitle }) {
 					onSave={handleSave}
 					onCellSelect={handleCellSelect}
 					key={spreadsheetId}
-<<<<<<< HEAD
 					initialMeta={
 						spreadsheet?.meta
 							? Object.entries(spreadsheet.meta).flatMap(([row, cols]) =>
@@ -560,8 +540,6 @@ export default function SpreadsheetPage({ title, setTitle }) {
 							  )
 							: []
 					}
-=======
->>>>>>> origin/master
 				/>
 			</div>
 		</div>

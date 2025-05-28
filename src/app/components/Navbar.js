@@ -19,7 +19,7 @@ async function saveTitleToBackend(newTitle) {
 	}
 }
 
-export default function Navbar({ title, setTitle }) {
+export default function Navbar({ title, setTitle, onTitleSaved }) {
 	const { isSignedIn, user } = useUser();
 	const [isEditing, setIsEditing] = useState(false);
 	const inputRef = useRef(null);
@@ -36,14 +36,20 @@ export default function Navbar({ title, setTitle }) {
 		setIsEditing(false);
 
 		if (!title.trim()) setTitle("Untitled SpreadSheet");
-		else saveTitleToBackend(title);
+		else {
+			saveTitleToBackend(title);
+			if (onTitleSaved) onTitleSaved(title);
+		}
 	};
 
 	const handleKeyDown = (e) => {
 		if (e.key === "Enter") {
 			setIsEditing(false);
 			if (!title.trim()) setTitle("Untitled SpreadSheet");
-			else saveTitleToBackend(title);
+			else {
+				saveTitleToBackend(title);
+				if (onTitleSaved) onTitleSaved(title);
+			}
 		}
 	};
 

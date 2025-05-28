@@ -4,11 +4,7 @@ import Handsontable from "handsontable";
 import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 
 // ✅ Define customCellRenderer properly
-<<<<<<< HEAD
 function customCellRenderer(
-=======
-const customCellRenderer = function (
->>>>>>> origin/master
 	instance,
 	td,
 	row,
@@ -17,7 +13,6 @@ const customCellRenderer = function (
 	value,
 	cellProperties
 ) {
-<<<<<<< HEAD
 	Handsontable.renderers.TextRenderer.apply(this, arguments);
 
 	const meta = instance.getCellMeta(row, col);
@@ -38,50 +33,12 @@ const customCellRenderer = function (
 
 const HandsontableComponent = forwardRef(
 	({ onCellSelect, initialData, initialMeta }, ref) => {
-=======
-	Handsontable.renderers.TextRenderer.call(
-		this,
-		instance,
-		td,
-		row,
-		col,
-		prop,
-		value,
-		cellProperties
-	);
-
-	const meta = instance.getCellMeta(row, col);
-
-	// ✅ Apply bold styling if enabled
-	td.style.fontWeight = meta.customBold ? "bold" : "normal";
-
-	// ✅ Apply background color if set
-	td.style.backgroundColor = meta.customColor ? meta.customColor : "";
-};
-
-const HandsontableComponent = forwardRef(
-	({ onCellSelect, initialData }, ref) => {
->>>>>>> origin/master
 		const containerRef = useRef(null);
 		const hotRef = useRef(null);
 
 		useImperativeHandle(ref, () => ({
 			getInstance: () => hotRef.current,
 		}));
-<<<<<<< HEAD
-
-=======
-		useEffect(() => {
-			console.log("HAndsonTable initial data:", initialData);
-			let isMounted = true;
-			if (hotRef.current && !hotRef.current.isDestroyed && initialData) {
-				hotRef.current.loadData(initialData);
-			}
-			return () => {
-				isMounted = false;
-			};
-		}, [initialData]);
->>>>>>> origin/master
 		useEffect(() => {
 			const rows = 100;
 			const cols = 26;
@@ -117,7 +74,6 @@ const HandsontableComponent = forwardRef(
 					}
 				},
 			});
-<<<<<<< HEAD
 			if (Array.isArray(initialMeta)) {
 				initialMeta.forEach((meta) => {
 					const cellMeta = hot.getCellMeta(meta.row, meta.col);
@@ -125,17 +81,11 @@ const HandsontableComponent = forwardRef(
 				});
 				hot.render();
 			}
-=======
->>>>>>> origin/master
 
 			hotRef.current = hot;
 
 			return () => hot.destroy();
-<<<<<<< HEAD
 		}, []);
-=======
-		}, [initialData]);
->>>>>>> origin/master
 
 		return (
 			<div ref={containerRef} className="w-full h-full overflow-auto"></div>

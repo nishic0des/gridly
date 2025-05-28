@@ -26,17 +26,16 @@ export default function AIAssistant({ sheetData }) {
 	};
 
 	return (
-		<div className="border p-4 rounded mt-4">
-			<div className="mb-2 font-bold">AI Assistant</div>
+		<div>
 			<input
 				className="border p-2 w-2/3"
-				placeholder="Ask about your sheet..."
+				placeholder="Ask Gridly Copilot..."
 				value={query}
 				onChange={(e) => setQuery(e.target.value)}
 				onKeyDown={(e) => e.key === "Enter" && askAI()}
 			/>
 			<button
-				className="ml-2 px-4 py-2 bg-blue-500 text-white rounded"
+				className="ml-2 px-4 py-2 bg-slate-900 text-white rounded"
 				onClick={askAI}
 				disabled={loading}>
 				Ask
