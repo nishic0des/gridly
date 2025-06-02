@@ -8,7 +8,6 @@ import toast from "react-hot-toast";
 import AIAssistant from "./AIAssistant";
 import VoiceCommandBar from "./VoiceCommandBar";
 import { SketchPicker } from "react-color";
-import Navbar from "./Navbar";
 import {
 	Bold,
 	Italic,
@@ -42,14 +41,11 @@ export default function SpreadsheetPage({ title, setTitle }) {
 	const hotRef = useRef(null);
 	const sync = useSyncState();
 
-	// Block editing for guests (like Google Sheets)
-	if (!userLoading && !user) {
-		if (typeof window !== "undefined") {
-			// You can add logic here if needed, or remove this block if not used
-			window.location.href = "login";
+	useEffect(() => {
+		if (!user && !userLoading) {
+			router.replace("/login");
 		}
-		return null;
-	}
+	}, [user, router]);
 
 	const handleTitleSaved = () => setRefetchKey((k) => k + 1);
 
@@ -82,7 +78,6 @@ export default function SpreadsheetPage({ title, setTitle }) {
 		for (let row = 0; row < rows; row++) {
 			for (let col = 0; col < cols; col++) {
 				const cellMeta = instance.getCellMeta(row, col);
-				// Only save relevant formatting keys
 				const {
 					bold,
 					italic,

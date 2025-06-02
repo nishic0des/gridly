@@ -58,7 +58,7 @@ export default function Navbar({ title, setTitle, onTitleSaved }) {
 			<div className="flex justify-between items-center p-4 border-b">
 				<div className="flex items-center space-x-4">
 					<Link href="/" className="font-bold">
-						Spreadsheet App
+						gridly
 					</Link>
 
 					{isSignedIn && (

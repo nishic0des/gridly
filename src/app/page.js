@@ -7,6 +7,7 @@ import { useState } from "react";
 
 export default function Home() {
 	const [title, setTitle] = useState("Untitled Spreadsheet");
+	
 	return (
 		<div>
 			<Navbar title={title} setTitle={setTitle} />
