@@ -1,36 +1,31 @@
 // app/api/spreadsheets/route.js
 import prisma from "../../../../lib/prisma";
-import { auth } from "@clerk/nextjs/server";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
-	const { userId: clerkUserId } = getAuth(request);
-
-	if (!clerkUserId) {
-		return new Response(JSON.stringify({ error: "Unauthorized" }), {
-			status: 401,
-		});
-	}
-
-	const { searchParams } = new URL(request.url);
-	const id = searchParams.get("id");
-
 	try {
+		const { userId: clerkUserId } = getAuth(request);
+
+		if (!clerkUserId) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
+		const { searchParams } = new URL(request.url);
+		const id = searchParams.get("id");
+
 		if (id) {
 			// Return a single spreadsheet by id
 			const spreadsheet = await prisma.spreadsheet.findUnique({
 				where: { id },
 			});
 			if (!spreadsheet) {
-				return new Response(
-					JSON.stringify({ error: "Spreadsheet not found" }),
-					{
-						status: 404,
-					}
+				return NextResponse.json(
+					{ error: "Spreadsheet not found" },
+					{ status: 404 }
 				);
 			}
-			return new Response(JSON.stringify(spreadsheet), { status: 200 });
+			return NextResponse.json(spreadsheet, { status: 200 });
 		} else {
 			const user = await prisma.user.findUnique({
 				where: { clerkUserId },
@@ -38,22 +33,16 @@ export async function GET(request) {
 			});
 
 			if (!user) {
-				return new Response(JSON.stringify({ error: "User not found" }), {
-					status: 404,
-				});
+				return NextResponse.json({ error: "User not found" }, { status: 404 });
 			}
 
-			return new Response(JSON.stringify(user.spreadsheets), {
-				status: 200,
-			});
+			return NextResponse.json(user.spreadsheets, { status: 200 });
 		}
 	} catch (error) {
-		console.error(error);
-		return new Response(
-			JSON.stringify({ error: "Failed to fetch spreadsheets" }),
-			{
-				status: 500,
-			}
+		console.error("[API /api/spreadsheets]", error);
+		return NextResponse.json(
+			{ error: "Failed to fetch spreadsheets" },
+			{ status: 500 }
 		);
 	}
 }
