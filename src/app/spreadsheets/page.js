@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Navbar from "../components/Navbar";
 import SpreadsheetPage from "../components/SpreadsheetPage.js";
 
@@ -16,11 +16,13 @@ export default function Spreadsheets() {
 				setTitle={setTitle}
 				onTitleSaved={handleTitleSaved}
 			/>
-			<SpreadsheetPage
-				title={title}
-				setTitle={setTitle}
-				refetchKey={refetchKey}
-			/>
+			<Suspense fallback={<div>Loading spreadsheet...</div>}>
+				<SpreadsheetPage
+					title={title}
+					setTitle={setTitle}
+					refetchKey={refetchKey}
+				/>
+			</Suspense>
 		</div>
 	);
 }
