@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSyncState } from "@/hooks/useSyncState";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
+import { useMemo, useCallback } from "react";
 import AIAssistant from "./AIAssistant";
 import VoiceCommandBar from "./VoiceCommandBar";
 import { SketchPicker } from "react-color";
@@ -21,14 +22,15 @@ import {
 } from "lucide-react";
 import HandsontableComponent from "./HandsontableComponent";
 import { useAuth } from "@clerk/nextjs";
-export default function SpreadsheetPage({ title, setTitle }) {
-	const router = useRouter();
-	const searchParams = useSearchParams();
+import Navbar from "./Navbar";
+import { memo } from "react";
+
+const SpreadsheetPage = memo(({ id, initialData }) => {
 	const { user, loading: userLoading } = useUser();
-	const [spreadsheet, setSpreadsheet] = useState(null);
-	const [loading, setLoading] = useState(true);
+	const [spreadsheet, setSpreadsheet] = useState(initialData);
+	const [loading, setLoading] = useState(false);
 	const { getToken } = useAuth();
-	const initialId = searchParams.get("id");
+	const initialId = id;
 	const [spreadsheetId, setSpreadsheetId] = useState(initialId);
 
 	// Formatting state
@@ -40,28 +42,68 @@ export default function SpreadsheetPage({ title, setTitle }) {
 	const [refetchKey, setRefetchKey] = useState(0);
 	const hotRef = useRef(null);
 	const sync = useSyncState();
+	const [title, setTitle] = useState("Untitled Spreadsheet");
+
+	useEffect(() => {
+		// console.log("Spreadsheet id updated:", spreadsheetId);
+	}, [spreadsheetId]);
+
+	const spreadsheetData = useMemo(() => spreadsheet?.data || [], [spreadsheet]);
+	const initialMeta = useMemo(() => {
+		if (!spreadsheet?.meta) return [];
+		return Object.entries(spreadsheet.meta).flatMap(([row, cols]) =>
+			Object.entries(cols).map(([col, meta]) => ({
+				row: Number(row),
+				col: Number(col),
+				...meta,
+			}))
+		);
+	}, [spreadsheet?.meta]);
+
+	useEffect(() => {
+		if (spreadsheet?.name) {
+			setTitle(spreadsheet.name);
+		}
+	}, [spreadsheet?.name, setTitle]);
+
+	useEffect(() => {
+		if (
+			hotRef.current &&
+			spreadsheet &&
+			spreadsheet.meta // <-- make sure meta exists
+		) {
+			const instance = hotRef.current.getInstance();
+			const meta = spreadsheet.meta;
+			// console.log("Meta data:", meta);
+			Object.entries(meta).forEach(([row, cols]) => {
+				Object.entries(cols).forEach(([col, cellMeta]) => {
+					Object.entries(cellMeta).forEach(([key, value]) => {
+						instance.setCellMeta(Number(row), Number(col), key, value);
+					});
+				});
+			});
+			instance.render();
+		}
+	}, [spreadsheet, hotRef]);
+
+	useEffect(() => {
+		if (spreadsheet?.name) {
+			setTitle(spreadsheet.name);
+		}
+	}, [spreadsheet]);
+
+	const router = useRouter();
 
 	useEffect(() => {
 		if (!user && !userLoading) {
 			router.replace("/login");
 		}
-	}, [user, router]);
+	}, [user, router, userLoading]);
 
 	const handleTitleSaved = () => setRefetchKey((k) => k + 1);
 
-	useEffect(() => {
-		const id = searchParams.get("id");
-		if (id && id !== spreadsheetId) {
-			setSpreadsheetId(id);
-		}
-	}, [searchParams, spreadsheetId]);
-
-	useEffect(() => {
-		console.log("Spreadsheet id updated:", spreadsheetId);
-	}, [spreadsheetId]);
-
 	// Formatting functions
-	const handleCellSelect = (cell) => {
+	const handleCellSelectMemoized = useCallback((cell) => {
 		setSelectedCell(cell);
 		if (hotRef.current) {
 			const instance = hotRef.current.getInstance();
@@ -69,7 +111,7 @@ export default function SpreadsheetPage({ title, setTitle }) {
 			setCurrentColor(meta.backgroundColor || "#ffffff");
 			setCurrentTextColor(meta.color || "#000000");
 		}
-	};
+	}, []);
 
 	function getAllCellMeta(instance) {
 		const meta = {};
@@ -98,13 +140,13 @@ export default function SpreadsheetPage({ title, setTitle }) {
 				) {
 					if (!meta[row]) meta[row] = {};
 					meta[row][col] = {
-						bold,
-						italic,
-						underline,
-						fontSize,
-						color,
-						backgroundColor,
-						alignment,
+						...(bold !== undefined && { bold }),
+						...(italic !== undefined && { italic }),
+						...(underline !== undefined && { underline }),
+						...(fontSize && { fontSize }),
+						...(color && { color }),
+						...(backgroundColor && { backgroundColor }),
+						...(alignment && { alignment }),
 					};
 				}
 			}
@@ -150,59 +192,140 @@ export default function SpreadsheetPage({ title, setTitle }) {
 	};
 
 	// Fetch spreadsheet data
-	useEffect(() => {
-		if (!user || !spreadsheetId) {
-			setLoading(false);
-			return;
-		}
 
-		const fetchSpreadsheet = async () => {
-			try {
-				setLoading(true);
-				const response = await fetch(`/api/spreadsheets?id=${spreadsheetId}`);
-				if (!response.ok) throw new Error("Failed to fetch spreadsheet");
-				const data = await response.json();
-				setSpreadsheet(data);
-				if (data.name) setTitle(data.name);
+	const handleVoiceCommandMemoized = useCallback(
+		(command) => {
+			const lower = command.toLowerCase();
 
-				if (data.id) setSpreadsheetId(data.id);
-
-				console.log(data);
-			} catch (err) {
-				toast.error(err.message);
-			} finally {
-				setLoading(false);
+			// Match "write {value} in {cell}" or "enter {value} in {cell}"
+			const writeMatch = lower.match(
+				/(?:write|enter) (.+?) (?:in|to) ([a-z]+\d+)/i
+			);
+			if (writeMatch) {
+				const value = writeMatch[1];
+				const cellRef = writeMatch[2].toUpperCase();
+				const cell = parseCellReference(cellRef);
+				if (cell && hotRef.current) {
+					const instance = hotRef.current.getInstance();
+					instance.setDataAtCell(cell.row, cell.col, value);
+					setSelectedCell(cell);
+					return true;
+				}
 			}
-		};
 
-		fetchSpreadsheet();
-	}, [spreadsheetId, user, refetchKey]);
+			// Match "format {cell} as {format}"
+			const formatMatch = lower.match(/format ([a-z]+\d+) as (.+)/i);
+			if (formatMatch && hotRef.current) {
+				const cellRef = formatMatch[1].toUpperCase();
+				const format = formatMatch[2];
+				const cell = parseCellReference(cellRef);
 
-	useEffect(() => {
-		if (spreadsheet?.name) {
-			setTitle(spreadsheet.name);
-		}
-	}, [spreadsheet?.name, setTitle]);
+				if (cell) {
+					const instance = hotRef.current.getInstance();
 
-	useEffect(() => {
-		if (
-			hotRef.current &&
-			spreadsheet &&
-			spreadsheet.meta // <-- make sure meta exists
-		) {
-			const instance = hotRef.current.getInstance();
-			const meta = spreadsheet.meta;
-			console.log("Meta data:", meta);
-			Object.entries(meta).forEach(([row, cols]) => {
-				Object.entries(cols).forEach(([col, cellMeta]) => {
-					Object.entries(cellMeta).forEach(([key, value]) => {
-						instance.setCellMeta(Number(row), Number(col), key, value);
-					});
+					// Handle different format types
+					if (format.includes("bold")) {
+						instance.setCellMeta(cell.row, cell.col, "bold", true);
+					} else if (format.includes("italic")) {
+						instance.setCellMeta(cell.row, cell.col, "italic", true);
+					} else if (format.includes("underline")) {
+						instance.setCellMeta(cell.row, cell.col, "underline", true);
+					} else if (format.includes("font size")) {
+						const size = format.match(/\d+/)?.[0] || "14";
+						instance.setCellMeta(cell.row, cell.col, "fontSize", `${size}px`);
+					}
+
+					instance.render();
+					setSelectedCell(cell);
+					return true;
+				}
+			}
+
+			// Add more command patterns here as needed
+
+			return false; // Return false if no command was recognized
+		},
+		[hotRef]
+	);
+
+	const handleSaveMemoized = useCallback(
+		async (data, { isAutoSave = false } = {}) => {
+			// ... existing handleSave implementation
+			sync.startSync();
+			const toastId = isAutoSave ? null : toast.loading("Saving...");
+			// console.log("Title of the spreadsheet: ", title);
+			try {
+				const token = await getToken();
+				if (!token) {
+					throw new Error("Not authenticated");
+				}
+				const instance = hotRef.current.getInstance();
+				if (!instance) {
+					throw new Error("Spreadsheet instance not available");
+				}
+				const meta = getAllCellMeta(instance);
+				const endpoint = spreadsheetId
+					? `/api/spreadsheets/${spreadsheetId}`
+					: `/api/spreadsheets`;
+				const method = spreadsheetId ? "PUT" : "POST";
+
+				const response = await fetch(endpoint, {
+					method,
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${token}`,
+					},
+					body: JSON.stringify({
+						name: title || "Untitled Spreadsheet",
+						data,
+						meta,
+						lastModified: new Date().toISOString(),
+					}),
 				});
-			});
-			instance.render();
-		}
-	}, [spreadsheet, hotRef]);
+
+				if (!response.ok) {
+					const errorData = await response.json().catch(() => ({}));
+					throw new Error(
+						errorData.error ||
+							(response.status === 409
+								? "Conflict detected - please refresh"
+								: `Failed to save spreadsheet: ${response.status} ${response.statusText}`)
+					);
+				}
+
+				const result = await response.json();
+				if (!spreadsheetId && result.id) {
+					setSpreadsheetId(result.id);
+					router.push(`/spreadsheets/${result.id}`, {
+						scroll: false,
+					});
+				}
+				setSpreadsheet((prev) => ({
+					...prev,
+					id: result.id || spreadsheetId,
+					name: title || "Untitled Spreadsheet",
+					data: data || [],
+					meta: meta || {},
+				}));
+				sync.completeSync();
+				if (!isAutoSave) {
+					toast.success("Saved successfully!", { id: toastId });
+				}
+				if (!spreadsheetId && result.id) {
+					setSpreadsheetId(result.id);
+					router.push(`/spreadsheets/${result.id}`);
+				}
+				return true;
+			} catch (error) {
+				sync.setError(error);
+				if (!isAutoSave) {
+					toast.error(error.message, { id: toastId });
+				}
+				return false;
+			}
+		},
+		[spreadsheetId, title, getToken, sync, router]
+	);
 
 	// Save spreadsheet on Ctrl+S
 	useEffect(() => {
@@ -212,71 +335,13 @@ export default function SpreadsheetPage({ title, setTitle }) {
 				if (hotRef.current) {
 					const instance = hotRef.current.getInstance();
 					const data = instance.getData();
-					handleSave(data);
+					handleSaveMemoized(data);
 				}
 			}
 		};
 		document.addEventListener("keydown", handleKeyDown);
 		return () => document.removeEventListener("keydown", handleKeyDown);
-	}, [hotRef, user]);
-
-	const handleSave = async (data, { isAutoSave = false } = {}) => {
-		sync.startSync();
-		const toastId = isAutoSave ? null : toast.loading("Saving...");
-		console.log("Title of the spreadsheet: ", title);
-		try {
-			const token = await getToken();
-			const instance = hotRef.current.getInstance();
-			const meta = getAllCellMeta(instance);
-			const endpoint = spreadsheetId
-				? `/api/spreadsheets?id=${spreadsheetId}`
-				: `/api/spreadsheets`;
-			const method = spreadsheetId ? "PUT" : "POST";
-
-			const response = await fetch(endpoint, {
-				method,
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
-				body: JSON.stringify({
-					name: title || "Untitled Spreadsheet",
-					data,
-					meta,
-					lastModified: new Date().toISOString(),
-				}),
-			});
-
-			if (!response.ok) {
-				throw new Error(
-					response.status === 409
-						? "Conflict detected - please refresh"
-						: "Failed to save spreadsheet"
-				);
-			}
-
-			const result = await response.json();
-			if (!spreadsheetId && result.id) {
-				setSpreadsheetId(result.id);
-			}
-			setSpreadsheet((prev) => ({ ...prev, data, name: title }));
-			sync.completeSync();
-			if (!isAutoSave) {
-				toast.success("Saved successfully!", { id: toastId });
-			}
-			if (!spreadsheetId && result.id) {
-				setSpreadsheetId(result.id);
-				router.push(`/spreadsheets?id=${result.id}`);
-			}
-			return true;
-		} catch (error) {
-			sync.setError(error);
-			if (!isAutoSave) {
-				toast.error(error.message, { id: toastId });
-			}
-			return false;
-		}
-	};
+	}, [handleSaveMemoized, hotRef, user]);
 
 	function parseCellReference(ref) {
 		// Matches e.g. "A3", "B12", "AA10"
@@ -294,67 +359,6 @@ export default function SpreadsheetPage({ title, setTitle }) {
 		return { row, col };
 	}
 
-	function handleVoiceCommand(command) {
-		const lower = command.toLowerCase();
-
-		// Match "write {value} in {cell}"
-		const writeMatch = lower.match(/enter (.+) in ([a-z]+\d+)/i);
-		if (writeMatch) {
-			const value = writeMatch[1];
-			const cellRef = writeMatch[2].toUpperCase();
-			const cell = parseCellReference(cellRef);
-			if (cell && hotRef.current) {
-				const instance = hotRef.current.getInstance();
-				instance.setDataAtCell(cell.row, cell.col, value);
-				setSelectedCell(cell);
-			}
-			return;
-		}
-
-		const fontColorMatch = lower.match(/(?:text|font) color (\w+)/i);
-		if (fontColorMatch && selectedCell && hotRef.current) {
-			const color = fontColorMatch[1];
-			const instance = hotRef.current.getInstance();
-			instance.setCellMeta(selectedCell.row, selectedCell.col, "color", color);
-			instance.render();
-			setCurrentTextColor(color);
-			return;
-		}
-
-		const cellColorMatch = lower.match(/(?:cell|background) color (\w+)/i);
-		if (cellColorMatch && selectedCell && hotRef.current) {
-			const color = cellColorMatch[1];
-			const instance = hotRef.current.getInstance();
-			instance.setCellMeta(
-				selectedCell.row,
-				selectedCell.col,
-				"backgroundColor",
-				color
-			);
-			instance.render();
-			setCurrentColor(color);
-			return;
-		}
-
-		// Match formatting commands like "bold A3"
-		const formatMatch = lower.match(/(bold|italic|underline) ([a-z]+\d+)/i);
-		if (formatMatch) {
-			const property = formatMatch[1];
-			const cellRef = formatMatch[2].toUpperCase();
-			const cell = parseCellReference(cellRef);
-			if (cell && hotRef.current) {
-				setSelectedCell(cell);
-				toggleFormatting(property, cell);
-			}
-			return;
-		}
-
-		// Fallback: apply to selected cell
-		if (lower.includes("bold")) toggleFormatting("bold");
-		if (lower.includes("italic")) toggleFormatting("italic");
-		if (lower.includes("underline")) toggleFormatting("underline");
-	}
-
 	// Loading state
 	if (userLoading || loading) {
 		return (
@@ -363,11 +367,19 @@ export default function SpreadsheetPage({ title, setTitle }) {
 			</div>
 		);
 	}
-	console.log("spreadsheet", spreadsheet);
-	console.log("spreadsheet?.data", spreadsheet?.data);
+	// console.log("spreadsheet", spreadsheet);
+	// console.log("spreadsheet?.data", spreadsheet?.data);
 
 	return (
 		<div className="flex flex-col h-screen">
+			<Navbar
+				title={title}
+				onTitleChange={(newTitle) => {
+					setTitle(newTitle);
+				}}
+				isSpreadsheetPage={true}
+			/>
+
 			{/* Toolbar */}
 			<div className="bg-gray-100 p-2 border-b">
 				<div className="flex items-center space-x-2">
@@ -510,7 +522,7 @@ export default function SpreadsheetPage({ title, setTitle }) {
 					<div className="flex-shrink-0 ml-4">
 						{/* Voice Command Bar */}
 						<VoiceCommandBar
-							onCommand={handleVoiceCommand}
+							onCommand={handleVoiceCommandMemoized}
 							loading={userLoading}
 						/>
 					</div>
@@ -521,8 +533,8 @@ export default function SpreadsheetPage({ title, setTitle }) {
 				<HandsontableComponent
 					ref={hotRef}
 					initialData={spreadsheet?.data || []}
-					onSave={handleSave}
-					onCellSelect={handleCellSelect}
+					onSave={handleSaveMemoized}
+					onCellSelect={handleCellSelectMemoized}
 					key={spreadsheetId}
 					initialMeta={
 						spreadsheet?.meta
@@ -539,4 +551,8 @@ export default function SpreadsheetPage({ title, setTitle }) {
 			</div>
 		</div>
 	);
-}
+});
+
+SpreadsheetPage.displayName = "SpreadsheetPage";
+
+export default SpreadsheetPage;

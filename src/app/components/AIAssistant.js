@@ -7,7 +7,7 @@ export default function AIAssistant({ sheetData }) {
 
 	const askAI = async () => {
 		if (!query.trim()) return;
-		console.log("Sheet data: ", sheetData);
+		// console.log("Sheet data: ", sheetData);
 
 		if (!sheetData || sheetData.length === 0) {
 			setAnswer("No data");

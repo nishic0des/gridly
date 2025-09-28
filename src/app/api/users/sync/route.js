@@ -7,7 +7,7 @@ export async function POST(request) {
 		return new Response("Unauthorized", { status: 401 });
 	}
 	// Safely extract email from Clerk claims and log claims for debugging
-	console.log("sessionClaims:", sessionClaims);
+	// console.log("sessionClaims:", sessionClaims);
 	let email = null;
 	if (
 		sessionClaims?.email_addresses &&
@@ -48,7 +48,7 @@ export async function POST(request) {
 		});
 		return new Response(JSON.stringify(newUser), { status: 201 });
 	} catch (error) {
-		console.error("Error creating user:", error);
+		// console.error("Error creating user:", error);
 		return new Response("Failed to sync user", { status: 500 });
 	}
 }

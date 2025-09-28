@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 
 export function handleError(error, defaultMessage="An error occured"){
-    console.error(error);
+    // console.error(error);
     return new Response(
         JSON.stringify({
             error:error.message|| defaultMessage,

@@ -18,7 +18,7 @@ export function useUser() {
 		const syncUser = async () => {
 			try {
 				const token = await getToken();
-				console.log("Token:", token);
+				// console.log("Token:", token);
 				const response = await fetch("/api/users/sync", {
 					method: "POST",
 					headers: {
@@ -32,7 +32,7 @@ export function useUser() {
 				const data = await response.json();
 				setUser(data);
 			} catch (error) {
-				console.error("Failed to sync user:", error);
+				// console.error("Failed to sync user:", error);
 			} finally {
 				setLoading(false);
 			}

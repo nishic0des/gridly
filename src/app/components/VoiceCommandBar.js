@@ -1,64 +1,102 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import SpeechRecognition, {
 	useSpeechRecognition,
 } from "react-speech-recognition";
-import { Mic, Loader, Loader2 } from "lucide-react";
+import { Mic, Loader2 } from "lucide-react";
 
 export default function VoiceCommandBar({ onCommand, loading }) {
-	const { transcript, listening, resetTranscript } = useSpeechRecognition();
+	const [browserSupportsSpeech, setBrowserSupportsSpeech] = useState(true);
+	const [error, setError] = useState(null);
 
-	React.useEffect(() => {
-		console.log("Transcript updated:", transcript);
-	}, [transcript]);
+	const {
+		transcript,
+		listening,
+		resetTranscript,
+		browserSupportsSpeechRecognition,
+	} = useSpeechRecognition();
 
-	const handleButtonClick = () => {
-		if (!listening) {
-			resetTranscript();
-			SpeechRecognition.startListening({ continuous: true });
-		} else {
-			SpeechRecognition.stopListening();
-			if (transcript && onCommand) {
-				console.log("Transcript:", transcript);
-				onCommand(transcript);
+	useEffect(() => {
+		if (!browserSupportsSpeechRecognition) {
+			setBrowserSupportsSpeech(false);
+			setError(
+				"Your browser doesn't support speech recognition. Try using Chrome or edge."
+			);
+		}
+	}, [browserSupportsSpeechRecognition]);
 
-				resetTranscript();
+	const handleButtonClick = async () => {
+		try {
+			if (!browserSupportsSpeechRecognition) {
+				setError(
+					"Your browser doesn't support speech recognition. Try using Chrome or edge."
+				);
+				return;
 			}
+
+			if (!listening) {
+				resetTranscript();
+				await SpeechRecognition.startListening({
+					continuous: true,
+					language: "en-US", // Ensure we're using English
+				});
+			} else {
+				await SpeechRecognition.stopListening();
+
+				if (transcript && onCommand) {
+					// Process the command
+					const success = onCommand(transcript);
+
+					if (!success) {
+						setError(
+							"Command not recognized. Try saying something like 'write Hello in A1' or 'format A1 as bold'."
+						);
+					} else {
+						setError(null);
+					}
+
+					resetTranscript();
+				}
+			}
+		} catch (err) {
+			console.error("Error with speech recognition:", err);
+			setError(
+				"Error accessing microphone. Please check your permissions and try again."
+			);
 		}
 	};
 
-	// return (
-	// 	<div style={{ marginBottom: 8 }}>
-	// 		<button
-	// 			onClick={handleButtonClick}
-	// 			disabled={loading}
-	// 			className={`px-4 py-2 rounded ${
-	// 				listening ? "bg-green-500 text-white" : "bg-gray-200"
-	// 			}`}>
-	// 			{listening ? <Loader2 className="animate-spin" /> : <Mic size={16} />}
-	// 		</button>
-	// 		<span style={{ marginLeft: 8, fontStyle: "italic" }}>{transcript}</span>
-	// 	</div>
-	// );
 	return (
-		<div>
+		<div className="flex items-center">
 			<button
 				onClick={handleButtonClick}
-				disabled={loading}
-				title="Edit with Gridly Agent"
-				aria-label="Edit with Gridly Agent"
+				disabled={loading || !browserSupportsSpeechRecognition}
+				title={
+					browserSupportsSpeechRecognition
+						? "Use voice commands"
+						: "Voice commands not supported"
+				}
+				aria-label="Use voice commands"
 				className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors border
-                    ${"bg-gray-100 hover:bg-gray-200 border-gray-300"}
-                    ${loading ? "opacity-50 cursor-not-allowed" : ""}
-                `}>
-				{/* Voice frequency/waveform icon */}
+          ${
+						listening
+							? "bg-green-100 border-green-400"
+							: "bg-gray-100 hover:bg-gray-200 border-gray-300"
+					}
+          ${
+						loading || !browserSupportsSpeechRecognition
+							? "opacity-50 cursor-not-allowed"
+							: ""
+					}
+        `}>
 				{listening ? (
 					<span className="flex items-center justify-center">
 						<svg width="24" height="24" viewBox="0 0 24 24">
+							{/* Animation bars */}
 							<rect
 								x="2"
-								y={listening ? 6 : 10}
+								y="6"
 								width="3"
-								height={listening ? 12 : 4}
+								height="12"
 								rx="1.5"
 								fill="currentColor">
 								<animate
@@ -76,9 +114,9 @@ export default function VoiceCommandBar({ onCommand, loading }) {
 							</rect>
 							<rect
 								x="7"
-								y={listening ? 2 : 10}
+								y="2"
 								width="3"
-								height={listening ? 20 : 4}
+								height="20"
 								rx="1.5"
 								fill="currentColor">
 								<animate
@@ -96,9 +134,9 @@ export default function VoiceCommandBar({ onCommand, loading }) {
 							</rect>
 							<rect
 								x="12"
-								y={listening ? 6 : 10}
+								y="6"
 								width="3"
-								height={listening ? 12 : 4}
+								height="12"
 								rx="1.5"
 								fill="currentColor">
 								<animate
@@ -116,9 +154,9 @@ export default function VoiceCommandBar({ onCommand, loading }) {
 							</rect>
 							<rect
 								x="17"
-								y={listening ? 10 : 10}
+								y="10"
 								width="3"
-								height={listening ? 4 : 4}
+								height="4"
 								rx="1.5"
 								fill="currentColor">
 								<animate
@@ -140,16 +178,16 @@ export default function VoiceCommandBar({ onCommand, loading }) {
 					<Mic size={16} />
 				)}
 			</button>
-			<span
-				style={{
-					border: "1px solid #ccc",
-					marginLeft: 8,
-					fontStyle: "italic",
-					color: "black",
-					backgroundColor: "white",
-				}}>
-				{transcript}
-			</span>
+
+			{error && (
+				<div className="ml-2 text-red-500 text-sm max-w-xs">{error}</div>
+			)}
+
+			{transcript && (
+				<div className="ml-2 px-2 py-1 bg-white border border-gray-200 rounded text-sm italic">
+					{transcript}
+				</div>
+			)}
 		</div>
 	);
 }
