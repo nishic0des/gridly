@@ -2,6 +2,7 @@
 	"name": "gridly",
 	"version": "0.1.0",
 	"private": true,
+	"type": "module",
 	"scripts": {
 		"dev": "prisma generate && next dev --turbopack",
 		"build": "prisma generate --schema=./prisma/schema.prisma && next build",
