@@ -1,12 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-	// Keep React StrictMode enabled (it's good for development)
 	reactStrictMode: true,
-
+	// Disable the Edge runtime for API routes
+	experimental: {
+		serverComponentsExternalPackages: ["@prisma/client"],
+	},
 	webpack: (config, { isServer }) => {
 		if (isServer) {
-			// Use dynamic import for ES modules
-			import("./prisma/generate-prisma.mjs").catch(console.error);
+			config.externals = [
+				...(config.externals || []),
+				{ "@prisma/client": "commonjs @prisma/client" },
+			];
 		}
 		return config;
 	},
