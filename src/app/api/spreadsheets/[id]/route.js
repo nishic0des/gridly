@@ -23,7 +23,7 @@ export async function GET(request, { params }) {
 		// Return a single spreadsheet by id
 		const spreadsheet = await prisma.spreadsheet.findUnique({
 			where: { id },
-			include: { user: true },
+			include: { User: true },
 		});
 		if (!spreadsheet) {
 			return NextResponse.json(
@@ -31,7 +31,7 @@ export async function GET(request, { params }) {
 				{ status: 404 }
 			);
 		}
-		if (spreadsheet.user.clerkUserId !== clerkUserId) {
+		if (spreadsheet.User.clerkUserId !== clerkUserId) {
 			return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 		}
 
@@ -57,7 +57,7 @@ export async function POST(request) {
 	}
 
 	try {
-		const user = await prisma.user.findUnique({
+		const user = await prisma.User.findUnique({
 			where: { clerkUserId },
 		});
 
@@ -67,7 +67,7 @@ export async function POST(request) {
 			});
 		}
 
-		const newSpreadsheet = await prisma.spreadsheet.create({
+		const newSpreadsheet = await prisma.Spreadsheet.create({
 			data: {
 				name,
 				data,
@@ -155,7 +155,7 @@ export async function DELETE(request, { params }) {
 		// First get the spreadsheet to check ownership
 		const existing = await prisma.spreadsheet.findUnique({
 			where: { id },
-			include: { user: true },
+			include: { User: true },
 		});
 
 		if (!existing) {

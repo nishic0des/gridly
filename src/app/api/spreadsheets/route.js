@@ -50,7 +50,7 @@ export async function POST(request) {
 				name: name || "Untitled Spreadsheet",
 				data,
 				meta,
-				user: {
+				User: {
 					connect: { id: user.id },
 				},
 			},
