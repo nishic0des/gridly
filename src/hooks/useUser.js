@@ -1,5 +1,6 @@
 "use client";
 import { useUser as useClerkUser, useAuth } from "@clerk/nextjs";
+/* global */
 import { useEffect, useState } from "react";
 
 export function useUser() {
@@ -31,8 +32,8 @@ export function useUser() {
 				}
 				const data = await response.json();
 				setUser(data);
-			} catch (error) {
-				// console.error("Failed to sync user:", error);
+			} catch (_error) {
+				console.error("Failed to sync user:", _error);
 			} finally {
 				setLoading(false);
 			}

@@ -1,3 +1,5 @@
+/* global window, navigator */
+
 import { useState, useEffect } from "react";
 
 export function useNetworkStatus() {
