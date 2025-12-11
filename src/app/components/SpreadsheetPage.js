@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSyncState } from "@/hooks/useSyncState";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
-
+import { Navbar as _Navbar } from "./Navbar";
 import { useAuth } from "@clerk/nextjs";
 import { memo } from "react";
 
@@ -352,7 +352,7 @@ const SpreadsheetPage = memo(({ id, initialData }) => {
 
 	return (
 		<div className="flex flex-col h-screen">
-			<Navbar
+			<_Navbar
 				title={title}
 				onTitleChange={(newTitle) => {
 					setTitle(newTitle);
