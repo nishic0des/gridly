@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import SpeechRecognition, {
 	useSpeechRecognition,
 } from "react-speech-recognition";
-import { Mic, Loader2 } from "lucide-react";
 
 export default function VoiceCommandBar({ onCommand, loading }) {
 	const [browserSupportsSpeech, setBrowserSupportsSpeech] = useState(true);
@@ -17,6 +16,8 @@ export default function VoiceCommandBar({ onCommand, loading }) {
 
 	useEffect(() => {
 		if (!browserSupportsSpeechRecognition) {
+			console.log(browserSupportsSpeech);
+
 			setBrowserSupportsSpeech(false);
 			setError(
 				"Your browser doesn't support speech recognition. Try using Chrome or edge."

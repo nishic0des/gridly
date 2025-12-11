@@ -4,8 +4,7 @@ import { useUser } from "@/hooks/useUser";
 import { useState, useEffect, useRef } from "react";
 import { useSyncState } from "@/hooks/useSyncState";
 import toast from "react-hot-toast";
-import { useMemo, useCallback } from "react";
-
+import { useCallback } from "react";
 
 import { useAuth } from "@clerk/nextjs";
 import { memo } from "react";
@@ -13,7 +12,6 @@ import { memo } from "react";
 const SpreadsheetPage = memo(({ id, initialData }) => {
 	const { user, loading: userLoading } = useUser();
 	const [spreadsheet, setSpreadsheet] = useState(initialData);
-	const [loading, setLoading] = useState(false);
 	const { getToken } = useAuth();
 	const initialId = id;
 	const [spreadsheetId, setSpreadsheetId] = useState(initialId);
@@ -32,17 +30,17 @@ const SpreadsheetPage = memo(({ id, initialData }) => {
 		// console.log("Spreadsheet id updated:", spreadsheetId);
 	}, [spreadsheetId]);
 
-	const spreadsheetData = useMemo(() => spreadsheet?.data || [], [spreadsheet]);
-	const initialMeta = useMemo(() => {
-		if (!spreadsheet?.meta) return [];
-		return Object.entries(spreadsheet.meta).flatMap(([row, cols]) =>
-			Object.entries(cols).map(([col, meta]) => ({
-				row: Number(row),
-				col: Number(col),
-				...meta,
-			}))
-		);
-	}, [spreadsheet?.meta]);
+	// const spreadsheetData = useMemo(() => spreadsheet?.data || [], [spreadsheet]);
+	// const initialMeta = useMemo(() => {
+	// 	if (!spreadsheet?.meta) return [];
+	// 	return Object.entries(spreadsheet.meta).flatMap(([row, cols]) =>
+	// 		Object.entries(cols).map(([col, meta]) => ({
+	// 			row: Number(row),
+	// 			col: Number(col),
+	// 			...meta,
+	// 		}))
+	// 	);
+	// }, [spreadsheet?.meta]);
 
 	useEffect(() => {
 		if (spreadsheet?.name) {
@@ -83,7 +81,6 @@ const SpreadsheetPage = memo(({ id, initialData }) => {
 			router.replace("/login");
 		}
 	}, [user, router, userLoading]);
-
 
 	// Formatting functions
 	const handleCellSelectMemoized = useCallback((cell) => {
@@ -343,7 +340,7 @@ const SpreadsheetPage = memo(({ id, initialData }) => {
 	}
 
 	// Loading state
-	if (userLoading || loading) {
+	if (userLoading) {
 		return (
 			<div className="flex justify-center items-center h-screen">
 				<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>

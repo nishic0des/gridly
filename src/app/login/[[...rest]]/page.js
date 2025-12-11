@@ -1,12 +1,10 @@
 "use client";
-import { SignIn } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { SignIn as _SignIn } from "@clerk/nextjs";
 
 export default function SignInPage() {
-	const router = useRouter();
 	return (
 		<div className="flex justify-center items-center min-h-screen">
-			<SignIn afterSignInUrl="/spreadsheets" redirectUrl="/spreadsheets" />
+			<_SignIn afterSignInUrl="/spreadsheets" redirectUrl="/spreadsheets" />
 		</div>
 	);
 }
