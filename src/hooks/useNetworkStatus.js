@@ -1,6 +1,6 @@
-/* global window, navigator */
-
 import { useState, useEffect } from "react";
+
+/* eslint-env browser */
 
 export function useNetworkStatus() {
 	const [isOnline, setIsOnline] = useState(

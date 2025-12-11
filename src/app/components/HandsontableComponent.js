@@ -4,15 +4,7 @@ import Handsontable from "handsontable";
 import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 
 // ✅ Define customCellRenderer properly
-function customCellRenderer(
-	instance,
-	td,
-	row,
-	col,
-	prop,
-	value,
-	cellProperties
-) {
+function customCellRenderer(instance, td, row, col) {
 	Handsontable.renderers.TextRenderer.apply(this, arguments);
 
 	const meta = instance.getCellMeta(row, col);
@@ -64,7 +56,7 @@ const HandsontableComponent = forwardRef(
 				colWidths: 100,
 
 				// ✅ Use custom renderer
-				cells: (row, col) => {
+				cells: () => {
 					return { renderer: customCellRenderer };
 				},
 

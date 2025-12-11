@@ -36,9 +36,11 @@ export async function GET(request, { params }) {
 		}
 
 		const { user, ...spreadsheetData } = spreadsheet;
+		console.log(user);
+
 		return NextResponse.json(spreadsheetData, { status: 200 });
 	} catch (error) {
-		// console.error("[API /api/spreadsheets]", error);
+		console.error("[API /api/spreadsheets]", error);
 		return NextResponse.json(
 			{ error: "Failed to fetch spreadsheets" },
 			{ status: 500 }
@@ -83,7 +85,7 @@ export async function POST(request) {
 			status: 201,
 		});
 	} catch (error) {
-		// console.error(error);
+		console.error(error);
 		return new Response(
 			JSON.stringify({ error: "Failed to create spreadsheet" }),
 			{
@@ -131,11 +133,11 @@ export async function PUT(request, { params }) {
 			},
 			data: dataToUpdate,
 		});
-		// console.log("Updated Spreadsheet: ", updatedSpreadsheet);
+		console.log("Updated Spreadsheet: ", updatedSpreadsheet);
 
 		return NextResponse.json(updatedSpreadsheet, { status: 200 });
 	} catch (error) {
-		// console.error("[API /api/spreadsheets/[id]]", error);
+		console.error("[API /api/spreadsheets/[id]]", error);
 		return NextResponse.json(
 			{ error: "Failed to update spreadsheet" },
 			{ status: 500 }
@@ -175,7 +177,7 @@ export async function DELETE(request, { params }) {
 
 		return new Response(null, { status: 204 });
 	} catch (error) {
-		// console.error(`[API /api/spreadsheets/[id]]`, error);
+		console.error(`[API /api/spreadsheets/[id]]`, error);
 		return NextResponse.json(
 			{ error: "Failed to delete spreadsheet" },
 			{ status: 500 }

@@ -2,10 +2,6 @@
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Plus } from "lucide-react";
-import SpreadsheetPage from "../components/SpreadsheetPage";
-import Navbar from "../components/Navbar";
 
 export default function Spreadsheets() {
 	const { isLoaded: isUserLoaded, isSignedIn } = useUser();
@@ -40,8 +36,8 @@ export default function Spreadsheets() {
 				const data = await response.json();
 				setSpreadsheets(data);
 			} catch (error) {
-				// console.error("Error fetching spreadsheets:", error);
 				// Optionally show error message to user
+				console.error("Error fetching spreadsheets:", error);
 			} finally {
 				setIsLoading(false);
 			}

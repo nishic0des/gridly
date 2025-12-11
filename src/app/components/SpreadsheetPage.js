@@ -3,26 +3,11 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/useUser";
 import { useState, useEffect, useRef } from "react";
 import { useSyncState } from "@/hooks/useSyncState";
-import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { useMemo, useCallback } from "react";
-import AIAssistant from "./AIAssistant";
-import VoiceCommandBar from "./VoiceCommandBar";
-import { SketchPicker } from "react-color";
-import {
-	Bold,
-	Italic,
-	Underline,
-	TextCursorInput,
-	Palette,
-	Paintbrush,
-	AlignLeft,
-	AlignCenter,
-	AlignRight,
-} from "lucide-react";
-import HandsontableComponent from "./HandsontableComponent";
+
+
 import { useAuth } from "@clerk/nextjs";
-import Navbar from "./Navbar";
 import { memo } from "react";
 
 const SpreadsheetPage = memo(({ id, initialData }) => {
@@ -39,7 +24,6 @@ const SpreadsheetPage = memo(({ id, initialData }) => {
 	const [showTextColorPicker, setShowTextColorPicker] = useState(false);
 	const [currentColor, setCurrentColor] = useState("#ffffff");
 	const [currentTextColor, setCurrentTextColor] = useState("#000000");
-	const [refetchKey, setRefetchKey] = useState(0);
 	const hotRef = useRef(null);
 	const sync = useSyncState();
 	const [title, setTitle] = useState("Untitled Spreadsheet");
@@ -100,7 +84,6 @@ const SpreadsheetPage = memo(({ id, initialData }) => {
 		}
 	}, [user, router, userLoading]);
 
-	const handleTitleSaved = () => setRefetchKey((k) => k + 1);
 
 	// Formatting functions
 	const handleCellSelectMemoized = useCallback((cell) => {

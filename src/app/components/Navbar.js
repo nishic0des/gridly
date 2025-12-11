@@ -1,10 +1,8 @@
 // components/Navbar.js
 "use client";
-import Link from "next/link";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { useState, useRef } from "react";
 import { useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
 async function saveTitleToBackend(newTitle) {
 	try {
 		const id = new URL(window.location.href).pathname.split("/").pop();
@@ -14,13 +12,13 @@ async function saveTitleToBackend(newTitle) {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ name: newTitle }),
 		});
-		// console.log("Saved title", response);
+		console.log("Saved title", response);
 
 		if (!response.ok) {
 			throw new Error("Failed to save title");
 		}
 	} catch (err) {
-		// console.error("Failed to save title:", err);
+		console.error("Failed to save title:", err);
 	}
 }
 
@@ -32,7 +30,6 @@ export default function Navbar({
 	const { isSignedIn, user } = useUser();
 	const [isEditing, setIsEditing] = useState(false);
 	const [title, setTitleState] = useState(propTitle || "Untitled Spreadsheet");
-	const { getToken } = useAuth();
 	const [isSaving, setIsSaving] = useState(false);
 
 	const handleTitleChange = async (e) => {
@@ -40,10 +37,14 @@ export default function Navbar({
 		onTitleChange(newTitle); // Update local state
 
 		try {
+			console.log(isSaving);
+
 			setIsSaving(true);
 			await saveTitleToBackend(newTitle);
 		} catch (error) {
-			toast.error("Failed to save title");
+			console.log(error);
+
+			// toast.error("Failed to save title");
 		} finally {
 			setIsSaving(false);
 		}
@@ -51,6 +52,8 @@ export default function Navbar({
 
 	const inputRef = useRef(null);
 	useEffect(() => {
+		console.log(title);
+
 		setTitleState(propTitle || "Untitled Spreadsheet");
 	}, [propTitle]);
 
@@ -65,7 +68,7 @@ export default function Navbar({
 	const handleBlur = () => {
 		setIsEditing(false);
 
-		if (!title.trim()) setTitle("Untitled SpreadSheet");
+		if (!title.trim()) setTitleState("Untitled SpreadSheet");
 		else {
 			saveTitleToBackend(title);
 			if (onTitleChange) onTitleChange(title);
@@ -75,7 +78,7 @@ export default function Navbar({
 	const handleKeyDown = (e) => {
 		if (e.key === "Enter") {
 			setIsEditing(false);
-			if (!title.trim()) setTitle("Untitled SpreadSheet");
+			if (!title.trim()) setTitleState("Untitled SpreadSheet");
 			else {
 				saveTitleToBackend(title);
 				if (onTitleChange) onTitleChange(title);

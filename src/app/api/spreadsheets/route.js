@@ -58,7 +58,7 @@ export async function POST(request) {
 
 		return NextResponse.json(newSpreadsheet, { status: 201 });
 	} catch (error) {
-		// console.error("[API] /api/spreadsheets", error);
+		console.error("[API] /api/spreadsheets", error);
 		return NextResponse.json(
 			{ error: "Failed to create spreadsheet" },
 			{ status: 500 }

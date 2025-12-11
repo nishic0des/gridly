@@ -2,7 +2,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import SpreadsheetPage from "@/app/components/SpreadsheetPage";
 import { useAuth } from "@clerk/clerk-react";
 
 export default function Spreadsheet() {

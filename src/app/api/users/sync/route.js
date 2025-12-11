@@ -48,7 +48,7 @@ export async function POST(request) {
 		});
 		return new Response(JSON.stringify(newUser), { status: 201 });
 	} catch (error) {
-		// console.error("Error creating user:", error);
+		console.error("Error creating user:", error);
 		return new Response("Failed to sync user", { status: 500 });
 	}
 }
