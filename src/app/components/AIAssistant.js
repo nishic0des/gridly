@@ -20,8 +20,9 @@ export default function AIAssistant({ sheetData }) {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ query, sheetData }),
 		});
+
 		const data = await res.json();
-		setAnswer(data.answer);
+		setAnswer(data.ans);
 		setLoading(false);
 	};
 

@@ -2,6 +2,9 @@
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 
 export default function Spreadsheets() {
 	const { isLoaded: isUserLoaded, isSignedIn } = useUser();
@@ -18,25 +21,46 @@ export default function Spreadsheets() {
 			return;
 		}
 
+		const syncUser = async () => {
+			const token = await getToken();
+			const response = await fetch("/api/users/sync", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+			});
+
+			console.log("Response after syncing: ", response);
+
+			if (!response.ok) {
+				throw new Error("Failed to sync user data");
+			}
+
+			const userData = await response.json();
+			console.log("User synced:", userData);
+		};
+		syncUser();
+
 		const fetchSpreadsheets = async () => {
 			try {
 				setIsLoading(true);
-				const token = await getToken();
 				const response = await fetch("/api/spreadsheets", {
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: `Bearer ${token}`,
+						Authorization: `Bearer ${await getToken()}`,
 					},
 				});
-				// console.log("Response: ", response);
 
 				if (!response.ok) {
-					throw new Error("Failed to fetch spreadsheets");
+					const error = await response.json();
+					console.error("Error response:", error);
+					throw new Error(error.error || "Failed to fetch spreadsheets");
 				}
+
 				const data = await response.json();
 				setSpreadsheets(data);
 			} catch (error) {
-				// Optionally show error message to user
 				console.error("Error fetching spreadsheets:", error);
 			} finally {
 				setIsLoading(false);
@@ -46,6 +70,31 @@ export default function Spreadsheets() {
 		fetchSpreadsheets();
 	}, [isUserLoaded, isSignedIn, router, getToken]);
 
+	const createNewSpreadsheet = async () => {
+		const token = await getToken();
+		const response = await fetch("/api/spreadsheets", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify({
+				name: "Untitled Spreadsheet",
+				data: [],
+				meta: {},
+			}),
+		});
+		console.log("Response: ", response);
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.message || "Failed to create spreadsheet");
+		}
+
+		const data = await response.json();
+		router.replace(`/spreadsheets/${data.id}`);
+		return;
+	};
 	if (!isUserLoaded || isLoading) {
 		return (
 			<div className="flex justify-center items-center h-screen">
@@ -64,12 +113,12 @@ export default function Spreadsheets() {
 
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 					{/* New Spreadsheet Card */}
-					<Link
-						href="/spreadsheets/new"
+					<button
+						onClick={createNewSpreadsheet}
 						className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors duration-200 h-48">
 						<Plus className="h-12 w-12 text-gray-400 mb-2" />
 						<span className="text-gray-700 font-medium">New Spreadsheet</span>
-					</Link>
+					</button>
 
 					{/* Existing Spreadsheet Cards */}
 					{spreadsheets.map((spreadsheet) => (

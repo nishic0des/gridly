@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import SpeechRecognition, {
 	useSpeechRecognition,
 } from "react-speech-recognition";
-
+import { Mic } from "lucide-react";
 export default function VoiceCommandBar({ onCommand, loading }) {
 	const [browserSupportsSpeech, setBrowserSupportsSpeech] = useState(true);
 	const [error, setError] = useState(null);

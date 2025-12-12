@@ -5,9 +5,25 @@ import { useState, useEffect, useRef } from "react";
 import { useSyncState } from "@/hooks/useSyncState";
 import toast from "react-hot-toast";
 import { useCallback } from "react";
-import { Navbar as _Navbar } from "./Navbar";
+import Navbar from "./Navbar";
 import { useAuth } from "@clerk/nextjs";
 import { memo } from "react";
+import {
+	Bold,
+	Italic,
+	Underline,
+	TextCursorInput,
+	Palette,
+	Paintbrush,
+	AlignCenter,
+	AlignLeft,
+	AlignRight,
+	
+} from "lucide-react";
+import { SketchPicker } from "react-color";
+import HandsontableComponent from "./HandsontableComponent";
+import AIAssistant from "./AIAssistant";
+import VoiceCommandBar from "./VoiceCommandBar";
 
 const SpreadsheetPage = memo(({ id, initialData }) => {
 	const { user, loading: userLoading } = useUser();
@@ -352,7 +368,7 @@ const SpreadsheetPage = memo(({ id, initialData }) => {
 
 	return (
 		<div className="flex flex-col h-screen">
-			<_Navbar
+			<Navbar
 				title={title}
 				onTitleChange={(newTitle) => {
 					setTitle(newTitle);

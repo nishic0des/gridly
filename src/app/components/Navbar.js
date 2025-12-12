@@ -3,6 +3,9 @@
 import { useUser } from "@clerk/nextjs";
 import { useState, useRef } from "react";
 import { useEffect } from "react";
+import Link from "next/link";
+import { UserButton } from "@clerk/nextjs";
+
 async function saveTitleToBackend(newTitle) {
 	try {
 		const id = new URL(window.location.href).pathname.split("/").pop();
